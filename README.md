@@ -227,6 +227,7 @@ with torch.inference_mode():
     )
 
 # Decode output
+# Enable thinking mode by adding: "Please reason step by step, and put your final answer within \boxed{}."
 # use_think=False: Only return the final answer without thinking process
 # use_think=True: Include the model's reasoning/thinking process in the output
 outputs = processor.batch_decode(
