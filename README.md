@@ -281,6 +281,54 @@ outputs = processor.batch_decode(
 print(outputs)
 ```
 
+#### Multi Images Example
+```python
+conversation = [
+    {
+        "role": "user",
+        "content": [
+            {
+                "type": "image", 
+                "image": {
+                    "image_path": "./demo/demo1.jpg",
+                }
+            },
+            {
+                "type": "image", 
+                "image": {
+                    "image_path": "./demo/demo2.jpg",
+                }
+            },
+            {
+                "type": "text", 
+                "text": "Are these two images the same?"
+            },
+        ]
+    }
+]
+
+inputs = processor(
+    conversation=conversation,
+    add_system_prompt=True,
+    add_generation_prompt=True,
+    return_tensors="pt"
+)
+
+inputs = {k: v.cuda() if isinstance(v, torch.Tensor) else v 
+          for k, v in inputs.items()}
+if "pixel_values" in inputs:
+    inputs["pixel_values"] = inputs["pixel_values"].to(torch.bfloat16)
+
+output_ids = model.generate(**inputs, max_new_tokens=1024)
+outputs_no_think = processor.batch_decode(
+    output_ids, 
+    skip_special_tokens=True,
+    use_think=False  
+)[0].strip()
+print(outputs_no_think)
+```
+
+
 #### 3D Medical Image Example
 
 ```python
