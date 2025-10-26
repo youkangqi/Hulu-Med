@@ -327,7 +327,61 @@ outputs_no_think = processor.batch_decode(
 )[0].strip()
 print(outputs_no_think)
 ```
+#### Interleaved Example
+```python
+conversation = [
+    {
+        "role": "user",
+        "content": [
+            {
+                "type": "text", 
+                "text": "Image A:"
+            },
+            {
+                "type": "image", 
+                "image": {
+                    "image_path": "./demo/XRay.jpg",
+                }
+            },
+             {
+                "type": "text", 
+                "text": "Image B:"
+            },
+            {
+                "type": "image", 
+                "image": {
+                    "image_path": "./demo/pathology.png",
+                }
+            },
+            {
+                "type": "text", 
+                "text": "Which image is the pathology slide?"
+            },
+        ]
+    }
+]
 
+inputs = processor(
+    conversation=conversation,
+    add_system_prompt=True,
+    add_generation_prompt=True,
+    return_tensors="pt"
+)
+
+inputs = {k: v.cuda() if isinstance(v, torch.Tensor) else v 
+          for k, v in inputs.items()}
+if "pixel_values" in inputs:
+    inputs["pixel_values"] = inputs["pixel_values"].to(torch.bfloat16)
+
+output_ids = model.generate(**inputs, max_new_tokens=1024)
+outputs_no_think = processor.batch_decode(
+    output_ids, 
+    skip_special_tokens=True,
+    use_think=False  
+)[0].strip()
+print(outputs_no_think)
+#The pathology slide is Image B. It shows a microscopic view of tissue with various cellular structures and components, such as cells in different stages of maturation and areas of fibrous tissue. This type of image is typically used to examine the cellular architecture and identify any pathological changes within the tissue.
+```
 
 #### 3D Medical Image Example
 
