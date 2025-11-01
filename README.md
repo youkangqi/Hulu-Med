@@ -17,8 +17,8 @@
 </div>
 
 ## 🔥 News
-- **[2025-10-16]** 🚀 Demo Is Live! 
-We've just deployed a demo and we'd love for you to try it! Your insights and feedback are crucial for helping us improve the model in the next version.
+- **[2025-11-01]** 📊 Releasing our new evaluation code, **MedUniEval**! Built on MedEvalKit, MedUniEval is designed for the comprehensive evaluation of medical visual-language models. More benchmarks will be added soon.
+- **[2025-10-16]** 🚀 Demo Is Live! We've just deployed a demo and we'd love for you to try it! Your insights and feedback are crucial for helping us improve the model in the next version.
 - **[2025-10-15]** 🎉 Hulu-Med now supports Transformers integration! HuggingFace-compatible models released with simplified loading and inference. Integration with VLLM is ongoing. *The HF models are now available in the **main branch** on Hugging Face*.
 - The model has been updated in the main branch of our Hugging Face repository. You can now load it directly using `AutoModelForCausalLM.from_pretrained` - the weights will be automatically downloaded.
 For users in regions with limited access, you can set the HF mirror environment variable to ensure reliable downloads:
