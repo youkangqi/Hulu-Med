@@ -12,11 +12,12 @@
 [![ModelScope](https://img.shields.io/badge/ModelScope-Models-blue)](https://modelscope.cn/models/Med-Team/Hulu-Med)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
 
-[📄 Paper](https://arxiv.org/abs/2510.08668) | [🤗 Hulu-Med-7B](https://huggingface.co/ZJU-AI4H/Hulu-Med-7B) |[🤗 Hulu-Med-14B](https://huggingface.co/ZJU-AI4H/Hulu-Med-14B) |[🤗 Hulu-Med-32B](https://huggingface.co/ZJU-AI4H/Hulu-Med-32B) | [🔮 ModelScope Models](https://modelscope.cn/models/Med-Team/Hulu-Med) | [📊 Demo (Now Open)](https://3d4492084e4f695069.gradio.live)
+[📄 Paper](https://arxiv.org/abs/2510.08668) | [🤗 Hulu-Med-4B](https://huggingface.co/ZJU-AI4H/Hulu-Med-4B) |[🤗 Hulu-Med-7B](https://huggingface.co/ZJU-AI4H/Hulu-Med-7B) |[🤗 Hulu-Med-14B](https://huggingface.co/ZJU-AI4H/Hulu-Med-14B) |[🤗 Hulu-Med-32B](https://huggingface.co/ZJU-AI4H/Hulu-Med-32B) | [🔮 ModelScope Models](https://modelscope.cn/models/Med-Team/Hulu-Med) | [📊 Demo (Now Open)](https://3d4492084e4f695069.gradio.live)
 
 </div>
 
 ## 🔥 News
+- **[2025-11-18]** 🎊 We released **Hulu-Med-4B**, a lightweight model with strong multimodal and text reasoning abilities that surpasses MedGemma-4B and Lingshu-7B!
 - **[2025-11-01]** 📊 Releasing our new evaluation code, **MedUniEval**! Built on MedEvalKit, MedUniEval is designed for the comprehensive evaluation of medical visual-language models across various modalities—including text, 2D, 3D, and video. More benchmarks are coming soon. Some processed evaluation data are available [here](https://modelscope.cn/models/Med-Team/Hulu-Med).
 - **[2025-10-16]** 🚀 Demo Is Live! We've just deployed a demo and we'd love for you to try it! Your insights and feedback are crucial for helping us improve the model in the next version.
 - **[2025-10-15]** 🎉 Hulu-Med now supports Transformers integration! HuggingFace-compatible models released with simplified loading and inference. Integration with VLLM is ongoing. *The HF models are now available in the **main branch** on Hugging Face*.
