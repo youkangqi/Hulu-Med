@@ -17,6 +17,7 @@
 </div>
 
 ## 🔥 News
+- **[2025-11-27]** ⚡ **Hulu-Med** is now compatible with the latest **vLLM**, offering **faster inference** and **tensor parallel** support! Thank you all for your patience and feedback 💪   **[see here for installation](#-vllm-installation)**
 - **[2025-11-18]** 🎊 We released **Hulu-Med-4B**, a lightweight model with strong multimodal and text reasoning abilities that surpasses MedGemma-4B and Lingshu-7B!
 - **[2025-11-01]** 📊 Releasing our new evaluation code, **MedUniEval**! Built on MedEvalKit, MedUniEval is designed for the comprehensive evaluation of medical visual-language models across various modalities—including text, 2D, 3D, and video. More benchmarks are coming soon. Some processed evaluation data are available [here](https://modelscope.cn/models/Med-Team/Hulu-Med).
 - **[2025-10-16]** 🚀 Demo Is Live! We've just deployed a demo and we'd love for you to try it! Your insights and feedback are crucial for helping us improve the model in the next version.
@@ -163,6 +164,26 @@ pip install nibabel
 
 # Install other dependencies
 pip install -r requirements.txt
+```
+### 🧩 vLLM Installation 
+
+```bash
+pip install git+https://github.com/jiangsongtao/vllm.git
+
+# or
+git clone https://github.com/jiangsongtao/vllm.git
+cd vllm-main
+
+# Use precompiled mode for faster setup
+export VLLM_USE_PRECOMPILED=1
+rm -rf build/ .deps/
+
+# Editable install
+pip install -e .
+
+# Reinstall flash-attn for compatibility
+pip uninstall flash-attn -y
+pip install flash-attn --no-build-isolation
 ```
 
 ## 💻 Quick Start
