@@ -170,18 +170,12 @@ pip install -r requirements.txt
 ```bash
 pip install git+https://github.com/jiangsongtao/vllm.git
 
-# or
+# or try this way
 git clone https://github.com/jiangsongtao/vllm.git
 cd vllm-main
-
-# Use precompiled mode for faster setup
 export VLLM_USE_PRECOMPILED=1
 rm -rf build/ .deps/
-
-# Editable install
 pip install -e .
-
-# Reinstall flash-attn for compatibility
 pip uninstall flash-attn -y
 pip install flash-attn --no-build-isolation
 ```
