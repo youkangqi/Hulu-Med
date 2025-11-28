@@ -170,7 +170,7 @@ pip install -r requirements.txt
 ```bash
 VLLM_USE_PRECOMPILED=1 pip install git+https://github.com/jiangsongtao/vllm.git
 pip install pip install decord ffmpeg imageio
-## No need to install requirements.txt
+# No need to install requirements.txt
 
 # or try this way
 git clone https://github.com/jiangsongtao/vllm.git
