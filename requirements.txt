@@ -3,7 +3,7 @@ torch==2.4.0
 torchvision==0.19.0
 datasets==2.21.0
 transformers==4.51.2
-tokenizers==0.20.3
+tokenizers==0.21
 deepspeed==0.15.4
 accelerate==1.7.0
 peft==0.4.0
@@ -21,7 +21,7 @@ pysubs2
 ffmpeg-python
 # misc
 scikit-learn==1.2.2
-huggingface_hub==0.23.4
+huggingface_hub==0.30.2
 sentencepiece==0.1.99
 shortuuid
 einops==0.6.1
