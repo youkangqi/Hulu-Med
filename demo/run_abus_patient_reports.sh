@@ -11,7 +11,7 @@ log() {
 }
 
 DATA_ROOT="${DATA_ROOT:-data/abus_data}"
-OUTPUT_DIR="${OUTPUT_DIR:-outputs/abus_reports_raw_report_cn_with_keys}"
+OUTPUT_DIR="${OUTPUT_DIR:-outputs/abus_reports_cn}"
 MODEL_PATH="${MODEL_PATH:-/homeB/youkangqi/.cache/huggingface/hub/models--ZJU-AI4H--Hulu-Med-7B/snapshots/258594714a0d3835eb2c9e4cc165a4242e606d71/}"
 MAX_NEW_TOKENS="${MAX_NEW_TOKENS:-1024}"
 DTYPE="${DTYPE:-bfloat16}"
@@ -23,7 +23,9 @@ USE_THINK="${USE_THINK:-0}"
 RANDOM_SELECT="${RANDOM_SELECT:-1}"
 SEED="${SEED:-2026}"
 CN_LANGUAGE="${CN_LANGUAGE:-1}"
-KEYWORDS_PATH="${KEYWORDS_PATH:-data/kVME_data/data/key_technical_description_words.txt}"
+KEYWORDS_PATH="${KEYWORDS_PATH:-data/kVME_data/data/key_technical_description_words_v1.txt}"
+NUM_PER_CLASS="${NUM_PER_CLASS:-5}"
+NO_SINGLE_FILES="${NO_SINGLE_FILES:-1}"
 
 if [[ -z "${CUDA_VISIBLE_DEVICES-}" ]]; then
   if command -v nvidia-smi >/dev/null 2>&1; then
@@ -44,6 +46,8 @@ log "PATIENT_ID=${PATIENT_ID:-<all>} MAX_PATIENTS=${MAX_PATIENTS:-<all>}"
 log "RANDOM_SELECT=${RANDOM_SELECT} SEED=${SEED:-<auto>} OVERWRITE=${OVERWRITE} USE_THINK=${USE_THINK}"
 log "KEYWORDS_PATH=${KEYWORDS_PATH}"
 log "CN_LANGUAGE=${CN_LANGUAGE}"
+log "NUM_PER_CLASS=${NUM_PER_CLASS}"
+log "NO_SINGLE_FILES=${NO_SINGLE_FILES}"
 
 ARGS=(
   "--data-root" "${DATA_ROOT}"
@@ -53,6 +57,7 @@ ARGS=(
   "--dtype" "${DTYPE}"
   "--attn-impl" "${ATTN_IMPL}"
   "--keywords-path" "${KEYWORDS_PATH}"
+  "--num-per-class" "${NUM_PER_CLASS}"
 )
 
 if [[ -n "${PATIENT_ID}" ]]; then
@@ -78,6 +83,10 @@ if [[ "${RANDOM_SELECT}" == "1" ]]; then
   fi
 fi
 
+if [[ "${NO_SINGLE_FILES}" == "1" ]]; then
+  ARGS+=("--no-single-files")
+fi
+
 if [[ "${CN_LANGUAGE}" == "1" ]]; then
   ARGS+=("--language" "zh")
 else
@@ -86,3 +95,4 @@ fi
 
 log "Launching inference..."
 PYTHONUNBUFFERED=1 python demo/abus_patient_reports.py "${ARGS[@]}"
+log "Inference done"

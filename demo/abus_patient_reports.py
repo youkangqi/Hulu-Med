@@ -87,9 +87,20 @@ def parse_args():
         help="Random seed for --random-select.",
     )
     parser.add_argument(
+        "--num-per-class",
+        type=int,
+        default=1,
+        help="Number of labeled and unlabeled images to process per patient.",
+    )
+    parser.add_argument(
         "--overwrite",
         action="store_true",
         help="Overwrite existing outputs if present.",
+    )
+    parser.add_argument(
+        "--no-single-files",
+        action="store_true",
+        help="Do not write per-image output files.",
     )
     return parser.parse_args()
 
@@ -134,14 +145,14 @@ def build_prompt(keywords: list[str], language: str) -> str:
             "Findings\nImpression\nBI-RADS\nRecommendations\n"
             "If uncertain, explicitly state the uncertainty."
         )
-        base = ("Generate a medical report for this image.")
+        # base = ("Generate a medical report for this image.") #
     else:
         base = (
             "请根据这张2D乳腺超声图像生成中文诊断/病理风格报告，使用结构化输出：\n"
             "【影像所见】\n【印象】\n【BI-RADS】\n【建议】\n"
             "如有不确定之处，请明确说明不确定。"
         )
-        base = ("根据这个图片生成中文医学报告")
+        # base = ("根据这个图片生成中文医学报告") #
     if not keywords:
         return base
     if language == "en":
@@ -182,6 +193,7 @@ def generate_report(
     with torch.inference_mode():
         output_ids = model.generate(
             **inputs,
+            do_sample=False,
             max_new_tokens=max_new_tokens,
             pad_token_id=tokenizer.eos_token_id,
         )
@@ -212,6 +224,41 @@ def write_output(
                 f.write(f"{key}: {value}\n")
             f.write("\n")
         f.write(text)
+    return out_path
+
+
+def extract_image_index(image_path: Path) -> str:
+    name = image_path.name
+    index = ""
+    if "-" in name:
+        tail = name.rsplit("-", 1)[-1]
+        if "." in tail:
+            index = tail.split(".", 1)[0]
+    return index
+
+
+def init_aggregate_file(output_dir: Path, filename: str, overwrite: bool):
+    output_dir.mkdir(parents=True, exist_ok=True)
+    out_path = output_dir / filename
+    if out_path.exists() and not overwrite:
+        return out_path
+    with out_path.open("w", encoding="utf-8") as f:
+        f.write("image_path\timage_index\n\n")
+    return out_path
+
+
+def append_aggregate_output(
+    output_dir: Path,
+    filename: str,
+    image_path: Path,
+    text: str,
+):
+    out_path = output_dir / filename
+    index = extract_image_index(image_path)
+    with out_path.open("a", encoding="utf-8") as f:
+        f.write(f"{image_path}\t{index}\n")
+        f.write(text)
+        f.write("\n\n")
     return out_path
 
 
@@ -278,63 +325,85 @@ def main():
             print(f"Skip {patient_dir.name}: need at least one labeled and one unlabeled image.")
             continue
 
+        num_per_class = max(1, args.num_per_class)
         if rng is None:
-            labeled_image = labeled_images[0]
-            unlabeled_image = unlabeled_images[0]
+            labeled_selected = labeled_images[:num_per_class]
+            unlabeled_selected = unlabeled_images[:num_per_class]
         else:
-            labeled_image = rng.choice(labeled_images)
-            unlabeled_image = rng.choice(unlabeled_images)
-
-        labeled_index = images.index(labeled_image)
-        unlabeled_index = images.index(unlabeled_image)
+            labeled_selected = rng.sample(labeled_images, k=min(num_per_class, len(labeled_images)))
+            unlabeled_selected = rng.sample(unlabeled_images, k=min(num_per_class, len(unlabeled_images)))
 
         output_dir = Path(args.output_dir) / patient_dir.name
-        labeled_out = output_dir / f"with_label__{safe_filename(labeled_image.name)}.txt"
-        unlabeled_out = output_dir / f"no_label__{safe_filename(unlabeled_image.name)}.txt"
-
-        if not args.overwrite and labeled_out.exists() and unlabeled_out.exists():
-            print(f"Skip {patient_dir.name}: outputs already exist.")
-            continue
-
-        print(f"Processing patient {patient_dir.name}")
-
-        labeled_text = generate_report(
-            model=model,
-            processor=processor,
-            tokenizer=tokenizer,
-            image_path=labeled_image,
-            prompt=prompt,
-            torch_dtype=torch_dtype,
-            max_new_tokens=args.max_new_tokens,
-            use_think=args.use_think,
+        print(
+            f"Processing patient {patient_dir.name}: "
+            f"{len(labeled_selected)} labeled, {len(unlabeled_selected)} unlabeled"
         )
-        labeled_metadata = [
-            ("selection_mode", selection_mode),
-            ("selection_seed", seed_value),
-            ("index_in_patient_sequence_0based", str(labeled_index)),
-            ("index_in_patient_sequence_1based", str(labeled_index + 1)),
-            ("total_images_in_patient", str(len(images))),
-        ]
-        write_output(output_dir, labeled_image, True, labeled_text, labeled_metadata)
+        init_aggregate_file(output_dir, "labelled_infer.txt", args.overwrite)
+        init_aggregate_file(output_dir, "unlabelled_infer.txt", args.overwrite)
 
-        unlabeled_text = generate_report(
-            model=model,
-            processor=processor,
-            tokenizer=tokenizer,
-            image_path=unlabeled_image,
-            prompt=prompt,
-            torch_dtype=torch_dtype,
-            max_new_tokens=args.max_new_tokens,
-            use_think=args.use_think,
-        )
-        unlabeled_metadata = [
-            ("selection_mode", selection_mode),
-            ("selection_seed", seed_value),
-            ("index_in_patient_sequence_0based", str(unlabeled_index)),
-            ("index_in_patient_sequence_1based", str(unlabeled_index + 1)),
-            ("total_images_in_patient", str(len(images))),
-        ]
-        write_output(output_dir, unlabeled_image, False, unlabeled_text, unlabeled_metadata)
+        for labeled_image in labeled_selected:
+            labeled_index = images.index(labeled_image)
+            labeled_out = output_dir / f"with_label__{safe_filename(labeled_image.name)}.txt"
+            if labeled_out.exists() and not args.overwrite:
+                continue
+            labeled_text = generate_report(
+                model=model,
+                processor=processor,
+                tokenizer=tokenizer,
+                image_path=labeled_image,
+                prompt=prompt,
+                torch_dtype=torch_dtype,
+                max_new_tokens=args.max_new_tokens,
+                use_think=args.use_think,
+            )
+            labeled_metadata = [
+                ("selection_mode", selection_mode),
+                ("selection_seed", seed_value),
+                ("index_in_patient_sequence_0based", str(labeled_index)),
+                ("index_in_patient_sequence_1based", str(labeled_index + 1)),
+                ("total_images_in_patient", str(len(images))),
+                ("num_per_class", str(num_per_class)),
+            ]
+            if not args.no_single_files:
+                write_output(output_dir, labeled_image, True, labeled_text, labeled_metadata)
+            append_aggregate_output(
+                output_dir,
+                "labelled_infer.txt",
+                labeled_image,
+                labeled_text,
+            )
+
+        for unlabeled_image in unlabeled_selected:
+            unlabeled_index = images.index(unlabeled_image)
+            unlabeled_out = output_dir / f"no_label__{safe_filename(unlabeled_image.name)}.txt"
+            if unlabeled_out.exists() and not args.overwrite:
+                continue
+            unlabeled_text = generate_report(
+                model=model,
+                processor=processor,
+                tokenizer=tokenizer,
+                image_path=unlabeled_image,
+                prompt=prompt,
+                torch_dtype=torch_dtype,
+                max_new_tokens=args.max_new_tokens,
+                use_think=args.use_think,
+            )
+            unlabeled_metadata = [
+                ("selection_mode", selection_mode),
+                ("selection_seed", seed_value),
+                ("index_in_patient_sequence_0based", str(unlabeled_index)),
+                ("index_in_patient_sequence_1based", str(unlabeled_index + 1)),
+                ("total_images_in_patient", str(len(images))),
+                ("num_per_class", str(num_per_class)),
+            ]
+            if not args.no_single_files:
+                write_output(output_dir, unlabeled_image, False, unlabeled_text, unlabeled_metadata)
+            append_aggregate_output(
+                output_dir,
+                "unlabelled_infer.txt",
+                unlabeled_image,
+                unlabeled_text,
+            )
 
         processed += 1
         if args.max_patients is not None and processed >= args.max_patients:
