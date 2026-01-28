@@ -12,7 +12,7 @@ log() {
 
 DATA_ROOT="${DATA_ROOT:-data/abus_data}"
 MODEL_PATH="${MODEL_PATH:-/homeB/youkangqi/.cache/huggingface/hub/models--ZJU-AI4H--Hulu-Med-7B/snapshots/258594714a0d3835eb2c9e4cc165a4242e606d71/}"
-OUTPUT_PATH="${OUTPUT_PATH:-outputs/abus_reports_raw_report_cn_with_keys}"
+OUTPUT_PATH="${OUTPUT_PATH:-outputs/abus_reports_raw_report_cn}"
 PATIENT_ID="${PATIENT_ID:-33062}"
 ALL_PATIENTS="${ALL_PATIENTS:-1}"
 MAX_NEW_TOKENS="${MAX_NEW_TOKENS:-1024}"
@@ -21,12 +21,13 @@ ATTN_IMPL="${ATTN_IMPL:-flash_attention_2}"
 USE_THINK="${USE_THINK:-0}"
 STRIDE="${STRIDE:-1}"
 MAX_IMAGES="${MAX_IMAGES:-}"
-LABELS_ONLY="${LABELS_ONLY:-1}"
-KEYWORDS_PATH="${KEYWORDS_PATH:-data/kVME_data/data/key_technical_description_words.txt}"
+LABELS_ONLY="${LABELS_ONLY:-0}"
+KEYWORDS_PATH="${KEYWORDS_PATH:-data/kVME_data/data/key_technical_description_words_v1.txt}"
 OVERWRITE="${OVERWRITE:-1}"
 PRINT_INPUT_LENGTH="${PRINT_INPUT_LENGTH:-0}"
 PRINT_PROMPT="${PRINT_PROMPT:-0}"
 CN_LANGUAGE="${CN_LANGUAGE:-1}"
+STRUCTURAL_OUTPUT="${STRUCTURAL_OUTPUT:-0}"
 
 if [[ -z "${CUDA_VISIBLE_DEVICES-}" ]]; then
   if command -v nvidia-smi >/dev/null 2>&1; then
@@ -46,6 +47,7 @@ log "OUTPUT_PATH=${OUTPUT_PATH:-<auto>}"
 log "MAX_NEW_TOKENS=${MAX_NEW_TOKENS} DTYPE=${DTYPE} ATTN_IMPL=${ATTN_IMPL}"
 log "STRIDE=${STRIDE} MAX_IMAGES=${MAX_IMAGES:-<all>} LABELS_ONLY=${LABELS_ONLY} USE_THINK=${USE_THINK} OVERWRITE=${OVERWRITE}"
 log "KEYWORDS_PATH=${KEYWORDS_PATH}"
+log "STRUCTURAL_OUTPUT=${STRUCTURAL_OUTPUT}"
 
 ARGS=(
   "--data-root" "${DATA_ROOT}"
@@ -100,6 +102,8 @@ if [[ "${CN_LANGUAGE}" == "1" ]]; then
 else
   ARGS+=("--language" "en")
 fi
+
+ARGS+=("--structural-output" "${STRUCTURAL_OUTPUT}")
 
 log "Launching inference..."
 PYTHONUNBUFFERED=1 python demo/abus_multi_images_patient.py "${ARGS[@]}"

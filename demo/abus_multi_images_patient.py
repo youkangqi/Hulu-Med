@@ -73,6 +73,13 @@ def parse_args():
         help="Prompt language (zh or en).",
     )
     parser.add_argument(
+        "--structural-output",
+        type=int,
+        choices=[0, 1],
+        default=1,
+        help="Use structured report template (1) or freeform (0).",
+    )
+    parser.add_argument(
         "--use-think",
         action="store_true",
         help="Include model reasoning in the output.",
@@ -133,22 +140,35 @@ def load_keywords(path: Path) -> list[str]:
     return keywords
 
 
-def build_prompt(keywords: list[str], language: str) -> str:
+def build_prompt(keywords: list[str], language: str, structural_output: bool) -> str:
     if language == "en":
-        base = (
-            "This is a sequence of 2D breast ultrasound images from a single patient. "
-            "Generate a structured diagnostic/pathology-style report for the sequence "
-            "using sections:\n"
-            "Findings\nImpression\nBI-RADS\nRecommendations\n"
-            "If uncertain, explicitly state the uncertainty."
-        )
+        if structural_output:
+            base = (
+                "This is a sequence of 2D breast ultrasound images from a single patient. "
+                "Generate a structured diagnostic/pathology-style report for the sequence "
+                "using sections:\n"
+                "Findings\nImpression\nBI-RADS\nRecommendations\n"
+                "If uncertain, explicitly state the uncertainty."
+            )
+        else:
+            base = (
+                "This is a sequence of 2D breast ultrasound images from a single patient. "
+                "Generate a diagnostic/pathology-style report for the sequence in English. "
+                "If uncertain, explicitly state the uncertainty."
+            )
     else:
-        base = (
-            "这是一位患者的2D乳腺超声序列图像。请基于整段序列生成中文诊断/病理风格报告，"
-            "使用结构化输出：\n"
-            "【影像所见】\n【印象】\n【BI-RADS】\n【建议】\n"
-            "如有不确定之处，请明确说明不确定。"
-        )
+        if structural_output:
+            base = (
+                "这是一位患者的2D乳腺超声序列图像。请基于整段序列生成中文诊断/病理风格报告，"
+                "使用结构化输出：\n"
+                "【影像所见】\n【印象】\n【BI-RADS】\n【建议】\n"
+                "如有不确定之处，请明确说明不确定。"
+            )
+        else:
+            base = (
+                "这是一位患者的2D乳腺超声序列图像。请基于整段序列生成中文诊断/病理风格报告。"
+                "如有不确定之处，请明确说明不确定。"
+            )
         base = ("这是一位患者的2D乳腺超声序列图像，请基于整段序列生成中文医学报告")
     if not keywords:
         return base
@@ -201,7 +221,7 @@ def main():
     )
     tokenizer = processor.tokenizer
     keywords = load_keywords(Path(args.keywords_path))
-    prompt = build_prompt(keywords, args.language)
+    prompt = build_prompt(keywords, args.language, args.structural_output == 1)
     if args.print_prompt:
         prompt_tokens = tokenizer(
             prompt,

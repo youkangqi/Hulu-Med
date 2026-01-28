@@ -2,6 +2,20 @@ import argparse
 import csv
 from pathlib import Path
 
+'''
+遍历 outputs/abus_reports_raw_report_cn 下每个病人目录，提取：
+
+labelled_infer.txt（多张图：保存 image_index + 输出文本）
+unlabelled_infer.txt（多张图：保存 image_index + 输出文本）
+multi_images_report.txt
+multi_images_report_labels_only.txt
+
+输出为 CSV（默认）：
+outputs_extracted.csv
+
+运行示例
+python demo/abus_outputs_extract.py --input-dir outputs/abus_reports_raw_report_cn_with_keys --output-csv outputs/abus_reports_raw_report_cn_with_keys/outputs_extracted.csv
+'''
 
 def parse_args():
     parser = argparse.ArgumentParser(
